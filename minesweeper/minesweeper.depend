@@ -1,0 +1,18 @@
+# depslib dependency file v1.0
+1698776627 source:c:\users\borok\desktop\c\minesweeper\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdbool.h>
+	"debugmalloc.h"
+
+1697708539 c:\users\borok\desktop\c\minesweeper\debugmalloc.h
+	<stdbool.h>
+	<stddef.h>
+	<stdlib.h>
+	<stdio.h>
+	<ctype.h>
+	<string.h>
+	<stdarg.h>
+	<process.h>
+	<unistd.h>
+
