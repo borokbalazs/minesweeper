@@ -11,7 +11,6 @@ typedef struct Field{
     int sizex,sizey, bombs;
     Cell *cells;
 }Field;
-
 void swapBomb(Field *map, int i, int j){
     bool temp;
     temp = map->cells[i].bomb;
@@ -24,7 +23,6 @@ void shuffleBombs(Field *map){
         swapBomb(map, rand()%fsize, rand()%fsize);
     }
 }
-
 Field createField(int sizex, int sizey, int bombs){
     Field newField;
     newField.sizex=sizex;
@@ -48,7 +46,9 @@ typedef struct Player{
 }Player;
 void printCell(Cell cell){
     if(cell.flag){
+        printf("\033[0;31m");
         printf("|F|");
+        printf("\033[0m");
     }
     else if(cell.hidden){
         printf("|#|");
@@ -60,13 +60,13 @@ void printCell(Cell cell){
     printf("|%d|", cell.surround);
     }
 }
-
-
 void printMap(Field map, Player player){
     for(int i=0;i<map.sizey;i++){
         for(int j=0;j<map.sizex;j++){
                 if(player.y*map.sizex+player.x==i*map.sizex+j){
-                    printf("|P|");
+                printf("\033[0;34m");
+                printf("|P|");
+                printf("\033[0m");
                 }else{
             printCell(map.cells[i*map.sizex+j]);}
         }
@@ -74,6 +74,9 @@ void printMap(Field map, Player player){
     }
 }
 void revealCell(Field map, Cell *mycell, int x, int y){
+    if(mycell->flag){
+        return;
+    }
     mycell->hidden=false;
     mycell->surround=cellNeighbors(map, x, y);
     if(mycell->surround==0){
@@ -99,10 +102,9 @@ void revealCell(Field map, Cell *mycell, int x, int y){
         if(map.cells[(y+1)*map.sizex+(x-1)].hidden==true && y<map.sizey-1 && x>0){
         revealCell(map, &map.cells[(y+1)*map.sizex+(x-1)], x-1, y+1);}
     }
-
 }
 void flagCell(Field map, Cell *mycell){
-    if(mycell->flag==false){
+    if(mycell->flag==false && map.bombs-countFlags(map)>0){
         mycell->flag=true;
     }else{
     mycell->flag=false;}
@@ -110,32 +112,34 @@ void flagCell(Field map, Cell *mycell){
 int cellNeighbors(Field map, int x, int y){
     int sum=0;
     if(map.cells[y*map.sizex+(x-1)].bomb==true && x>0){
-        sum++;
-    }
+        sum++;}
     if(map.cells[y*map.sizex+(x+1)].bomb==true && x<map.sizex-1){
-        sum++;
-    }
+        sum++;}
     if(map.cells[(y+1)*map.sizex+x].bomb==true && y<map.sizey-1){
-        sum++;
-    }
+        sum++;}
     if(map.cells[(y-1)*map.sizex+x].bomb==true && y>0){
-        sum++;
-    }
+        sum++;}
     if(map.cells[(y-1)*map.sizex+x+1].bomb==true && y>0 && x<map.sizex-1){
-        sum++;
-    }
+        sum++;}
     if(map.cells[(y-1)*map.sizex+x-1].bomb==true && y>0 && x>0){
-        sum++;
-    }
+        sum++;}
     if(map.cells[(y+1)*map.sizex+x+1].bomb==true && y<map.sizey-1 && x< map.sizex-1){
-        sum++;
-    }
+        sum++;}
     if(map.cells[(y+1)*map.sizex+x-1].bomb==true && y<map.sizey-1 && x>0){
-        sum++;
-    }
-
+        sum++;}
     return sum;
 }
+int countFlags(Field map)
+{
+    int sum=0;
+    for(int i=0;i<map.sizex*map.sizey;i++){
+        if(map.cells[i].flag){
+            sum++;
+        }
+    }
+    return sum;
+}
+
 int main()
 {
     int sizex, sizey, bombs;
@@ -163,6 +167,9 @@ int main()
         break;
         case 'o':
             revealCell(map, &map.cells[player.y*map.sizex+player.x], player.x, player.y);
+            if(map.cells[player.y*map.sizex+player.x].bomb && !map.cells[player.y*map.sizex+player.x].flag){
+                goto vege;
+            }
         break;
         case 'f':
             flagCell(map, &map.cells[player.y*map.sizex+player.x]);
@@ -174,6 +181,7 @@ int main()
         }
         system("cls");
         printMap(map,player);
+        printf("\nBombs left: %d", map.bombs-countFlags(map));
     }
     vege:
     free(map.cells);
